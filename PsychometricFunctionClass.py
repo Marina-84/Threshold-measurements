@@ -5,7 +5,7 @@ Created on Mon Jul 20 19:15:38 2020
 Definion of a class Psychometric Function (PF) that allows the calculation of 
 several type of PFs, plotting the results and calculating the inverse values
 
-@author: Marina
+@author: Marina Torrente Rodriguez
 """
 
 
@@ -44,13 +44,23 @@ class PsychometricFunction():
     
     def plot_PF(self, start, end, num_points, title=""):
         x = np.linspace(start, end, num=num_points)
-        fx = self.PF(x)
 #        plt.figure()
-        plt.plot(x,fx)
+        plt.plot(x,self.PF(x))
         plt.title(title)
         plt.ylim(0,1)
         plt.grid()
         plt.show()
+        
+    def plot_PFestimate(self, x, stimilus_levels, correct_responses, total):
+        plt.figure()
+        plt.scatter(stimilus_levels, correct_responses/total, s=2*total)
+        plt.plot(x,self.PF(x))
+        plt.grid()
+        plt.ylabel("Probability of Correct Response")
+        plt.xlabel("Stimulus Intensity")
+        plt.legend(["Measured behaviour", "Estimate PF"])
+        plt.ylim(-0.1,1.1)
+
         
 
 ## Use example
