@@ -5,37 +5,36 @@ Created on Wed Jul 15 19:49:54 2020
 This GUI is designed to assess the just noticeable differences between the 
 length of a pair of lines. The aim is to measure the threshold in pixels at 
 which an observer is able to perceive a line longer than the other when the given
-lines have a specific width and are separated certain distance from each other.
+lines have a specific width and are separated a certain distance from each other.
 
 An adaptive method based on the posterior distribution is utilized, making 
-the collection of data more efficient. The core method known as the Psi method 
+data collection more efficient. The core method known as the Psi method 
 according to [1] has been modified to avoid the same stimulus being presented 
-in multiple consequtive trials throughout the test, thus gaining more confidence
+in multiple consecutive trials throughout the test, thus gaining more confidence
 on the threshold value and slope of the psychometric function. 
 
-The stimuli are presented to the observer as a two-alternative force-choice (2AFC).
+The stimuli are presented to the observer as a two-alternative forced-choice (2AFC).
 This is, the lines are presented at the same time, next to each other and the 
-observer needs to decide wich line seems the longest.
-
+observer needs to decide which line seems the longest.
 The Psi method estimates the sensory threshold based on previous responses. 
+
 A psychometric function is fitted to the data collected so far so that the 
 logarithmic likelihood is maximized. This is implemented by searching for the
-minimum negative logarithmic likelihood using the function 'minimze' from 
+minimum negative logarithmic likelihood using the function 'minimize' from 
 scipy.optimize and the 'Nelder-Mead' method (see the script MaxLikelihoodEstimation.py 
 for further information)
 
 A modification to the method described in [1] is implemented to avoid the same 
-stimulus intensity to be presented multiple consequtive times. This tends to 
-happen with a small discrete number of possible stimilus intensities. 
-A maximum of two consequtive times for the same stimulus value is alowed.
+stimulus intensity to be presented multiple consecutive times. This tends to 
+happen with a small discrete number of possible stimulus intensities. 
+
+A maximum of two consecutive times for the same stimulus value is allowed.
 After that, a random value is presented from the range of defined possible levels.
 The effect of this modification and the method's performance can be tested using the
 script AdaptiveTest_UserSimulation.py. The test parameters can be manipulated to 
 see the effect in order to design a suitable experiment depending on the application.
-
 At the end of the experiment, the test subject can view his/her results and 
-fitted psychometric function
-
+fitted psychometric function.
 
 [1] Psychophysics. A practical introduction. F. A. A. Kingdom & N. Prins
 
