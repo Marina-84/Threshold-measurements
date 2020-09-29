@@ -19,23 +19,23 @@ from PsychometricFunctionClass import PsychometricFunction
 from MaxLikelihoodEstimation import MLE_search
 
 # Define user
-user_threshold = 0.062
-user_slope = 40
+user_threshold = 5
+user_slope = 1
 lapse_error = 0.01
-test_gamma = 0
+test_gamma = 0.5
 typef= "Logistic"
 PF_user = PsychometricFunction(Alpha=user_threshold, Beta=user_slope,
                                Gamma=test_gamma, Lambda=lapse_error,
                                type_func=typef, inv=True)
 
 # Test parameters
-MaxTrials = 30 # After which the test stops
-MinTrials = 0.20*MaxTrials # Stimuli intensity for the first number of trials is presented at random 
+MaxTrials = 300 # After which the test stops
+MinTrials = 5 #int(0.10*MaxTrials) # Stimuli intensity for the first number of trials is presented at random 
 #StimLevels = np.array([0.01, 0.03, 0.05, 0.07, 0.09, 0.11])
-StimLevels = np.linspace(0.01,0.11,10)
+StimLevels = np.arange(0,15,1)
 Gamma = test_gamma
 Lambda = lapse_error
-MaxConsecutive = 3
+#MaxConsecutive = 2
 
 # Initialise test
 trials_counter = 0
@@ -60,34 +60,26 @@ while (trials_counter < MaxTrials):
 
     else:
         
-        if ((stim[-MaxConsecutive:-1]-stim[-1]).sum() == 0) & (len(stim) > MaxConsecutive):
-            # Choose next stimulus intensity randomly if the same stimilus 
-            # has been presented more than 4 consecutive times
-            StimIndex = random.choice(range(len(StimLevels)))
-        else:            
-            # present values by Psi method: 
-            # fitting PF taking the estimate PF as the posterior probablity
-            results = MLE_search(Gamma, Lambda, typef, StimLevels, NumCorrect, Total)
-            alpha.append(results.x[0])
-            beta.append(results.x[1])
+        # Present values by Psi method: 
+        # fitting PF taking the estimate PF as the posterior probability
+        results = MLE_search(Gamma, Lambda, typef, StimLevels, NumCorrect, Total)
+        alpha.append(results.x[0])
+        beta.append(results.x[1])        
+        print("alpha = ", results.x[0], " ; beta = ", results.x[1])
+        
+        # Find stimulus level closest to alpha and set as current
+        diff = abs(StimLevels-results.x[0])
+        StimIndex = np.unravel_index(np.argmin(diff, axis=0), diff.shape)
+        StimIndex = np.random.choice(a=np.arange(StimIndex[0]-2,StimIndex[0]+3,1))
+        if StimIndex < 0:
+            StimIndex = 0
+        elif StimIndex > len(StimLevels)-1:
+            StimIndex = len(StimLevels)-1
             
-            print("alpha = ", results.x[0], " ; beta = ", results.x[1])
-            
-            # find stim level closest to alpha and set as current 
-            diff = abs(StimLevels-results.x[0])
-            StimIndex = np.unravel_index(np.argmin(diff, axis=0), diff.shape)
-            
-#            # Find a stimulus within the steep region of the PF slope
-#            y = PsychometricFunction(Alpha=alpha, Beta=beta,
-#                               Gamma=test_gamma, Lambda=lapse_error,
-#                               type_func=typef).PF(StimLevels)
-#            StimCurrent = random.choice(StimLevels[(y>(Gamma+Lambda)) & (y<1)])
-            
-
 
     # Current Stimulus level by obtained index
     StimCurrent = StimLevels[StimIndex]
-    print("Current stimulus: ",StimCurrent) # Print
+    print("Current stimulus: ", StimCurrent) # Print
     stim.append(StimCurrent)                # Store
     
     # Increment number of total stimuli for the current level
@@ -96,8 +88,8 @@ while (trials_counter < MaxTrials):
     # Simulate user response
     # User PF value at current stimulus level
     pCurrent = PF_user.PF(StimCurrent)
-    # Record as correct response with a random chance 
-    # equal to the velue of the PF at that stimulus level
+    # Record a correct response with a random chance
+    # equal to the value of the PF at that stimulus level
     if random.random() <= pCurrent:
         NumCorrect[StimIndex] += 1
         
@@ -108,14 +100,14 @@ while (trials_counter < MaxTrials):
 
 # Print results
 print("End of test!")
-print("Simulated threshol:", user_threshold, " ; Measured threshold: ", alpha[-1])
+print("Simulated threshold:", user_threshold, " ; Measured threshold: ", alpha[-1])
 print("Simulated slope:", user_slope, " ; Measured slope: ", beta[-1])
 
 # Plot results
 x = np.min(StimLevels)
 plt.figure()
 PF_user.plot_PF(StimLevels[0],StimLevels[-1],100)
-plt.scatter(StimLevels,NumCorrect/Total, s=2*Total, color='b')
+plt.scatter(StimLevels[Total>0],NumCorrect[Total>0]/Total[Total>0], s=2*Total, color='b')
 PsychometricFunction(Alpha=alpha[-1], Beta=beta[-1],
                      Gamma=Gamma, Lambda=Lambda,
                      type_func=typef, inv=True).plot_PF(StimLevels[0],StimLevels[-1],100)
@@ -146,7 +138,7 @@ str_ann = '0/' + str(MaxTrials)
 xpos_ann = (np.max(StimLevels)-np.min(StimLevels))/10
 ypos_ann = 0.1
 annotation = plt.annotate(str_ann, xy=(xpos_ann,ypos_ann),
-                          xytext=(StimLevels[-2],0.1),
+                          xytext=(StimLevels[-4],0.1),
                           color='b')
 
 
@@ -169,13 +161,14 @@ def update(frame):
     ln.set_data(xdata,ydata)
     
     # Trial number count annottaion update
-    str_ann = str(frame) + '/' + str(MaxTrials)
+    frame_trial = round(MinTrials) + frame
+    str_ann = str(frame_trial) + '/' + str(MaxTrials)
     annotation.set_text(str_ann)
 
     return sc, ln, annotation,
 
 # Define animation function
-ani = animation.FuncAnimation(fig, func=update, frames=len(total),
+ani = animation.FuncAnimation(fig, func=update, frames=len(alpha),
                     init_func=init, interval=100, blit=True, repeat= False)
 
 # Set figure labels
@@ -184,4 +177,21 @@ plt.ylabel("Probability of Correct Response")
 plt.legend()
 
 # Show animation
-plt.show()
+plt.show()#
+
+
+# PF parameters progress plot
+fig_PFparam, (ax1, ax2) = plt.subplots(2)
+fig.suptitle('Psychometric Function Parameters Progress')
+ax1.plot(np.arange(0,len(alpha),1), alpha, label='Alpha')
+ax1.plot([0, MaxTrials],[user_threshold, user_threshold], label='User threshold')
+ax1.set_ylim(np.min(StimLevels),np.max(StimLevels))
+ax1.set_ylabel('Alpha')
+ax1.legend()
+
+ax2.plot(np.arange(0,len(beta),1), beta, label='Beta')
+ax2.plot([0, MaxTrials],[user_slope, user_slope], label='User Slope')
+ax2.set_ylim(user_slope-10, user_slope+10)
+ax2.set_ylabel('Beta')
+ax2.set_xlabel('# Trials')
+ax2.legend()
