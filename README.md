@@ -24,14 +24,14 @@ MaxConsecutive = 3              # Maximum number of time the same value of stimu
 ```
 Different subjects' behaviour can be simulated by manipulating the following parameters:
 ```
-# Define user
-user_threshold = 3
-user_slope = 40
-lapse_error = 0.01
-test_gamma = 1/2
-typef= "Logistic"
+# Define user         
+user_threshold = 3    # Simulated user threshold
+user_slope = 40       # Simulated user slope
+lapse_error = 0.01    # Typical value of lapse error
+test_gamma = 1/2      # Given by the type of test
+typef= "Logistic"     # Simulated type of behaviour
 
 ```
 The performance of the algorithm is shown at the end of the simulation, as shown in the figure below. This shows the number of trials required for the estimation to converge towards the 'true' thresjold and slope.
 
-<img src="https://github.com/Marina-84/Threshold-measurements/blob/master/Method_performance_progress_example.PNG" width="40%">
+<img src="https://github.com/Marina-84/Threshold-measurements/blob/master/Method_performance_progress_example.png" width="40%">
