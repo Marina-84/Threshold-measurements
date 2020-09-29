@@ -5,7 +5,7 @@ Created on Tue Jul 28 19:38:57 2020
 Function to perform the logarithmic Maximum Likelihood Estimation of the alpha 
 and beta parameters of a psychometric function
 
-@author: Marina
+@author: Marina Torrente Rodriguez
 """
 
 from PsychometricFunctionClass import PsychometricFunction
