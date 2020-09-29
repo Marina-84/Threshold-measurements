@@ -2,7 +2,7 @@
 """
 Created on Mon Jul 20 19:15:38 2020
 
-Definion of a class Psychometric Function (PF) that allows the calculation of 
+Definition of a class Psychometric Function (PF) that allows the calculation of 
 several type of PFs, plotting the results and calculating the inverse values
 
 @author: Marina Torrente Rodriguez
