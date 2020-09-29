@@ -16,8 +16,8 @@ on the threshold value and slope of the psychometric function.
 The stimuli are presented to the observer as a two-alternative forced-choice (2AFC).
 This is, the lines are presented at the same time, next to each other and the 
 observer needs to decide which line seems the longest.
-The Psi method estimates the sensory threshold based on previous responses. 
 
+The Psi method estimates the sensory threshold based on previous responses. 
 A psychometric function is fitted to the data collected so far so that the 
 logarithmic likelihood is maximized. This is implemented by searching for the
 minimum negative logarithmic likelihood using the function 'minimize' from 
@@ -27,14 +27,19 @@ for further information)
 A modification to the method described in [1] is implemented to avoid the same 
 stimulus intensity to be presented multiple consecutive times. This tends to 
 happen with a small discrete number of possible stimulus intensities. 
+The modification consist of presenting a value of the stimulus intensity within a
+range around the suggested value by the adaptive method and not necessarily 
+the exact closest value to the threshold estimate. This allows gaining more resolution 
+around the true threshold and prevents the adaptive method from getting ‘stuck’ 
+in the same value.
 
-A maximum of two consecutive times for the same stimulus value is allowed.
-After that, a random value is presented from the range of defined possible levels.
 The effect of this modification and the method's performance can be tested using the
 script AdaptiveTest_UserSimulation.py. The test parameters can be manipulated to 
 see the effect in order to design a suitable experiment depending on the application.
+
 At the end of the experiment, the test subject can view his/her results and 
-fitted psychometric function.
+fitted psychometric function
+
 
 [1] Psychophysics. A practical introduction. F. A. A. Kingdom & N. Prins
 
@@ -48,9 +53,9 @@ TO DOs:
     - Show test progress figure
     - Add signal detection theory test processing and metrics (ROC curves)
     - Add figure name to results figure
+
     
 """
-
 
 
 # Required libraries
@@ -63,13 +68,12 @@ import time
 
 # Threshold measurements varaibles
 # Test parameters
-MaxTrials = 30 # AFter which the test stops
-MinTrials = 0.30*MaxTrials # Stimuli intensity for the first number of trials is presented at random 
-StimLevels = np.arange(0,15,1)
-Gamma = 0.5 # Due to type of test
-Lambda = 0.01 # 
-typef = "Logistic"
-MaxConsecutive = 2
+MaxTrials = 30                  # After which the test stops
+MinTrials = 0.30*MaxTrials      # Stimuli intensity for the first number of trials is presented at random
+StimLevels = np.arange(0,15,1)  # Array of stimulus intensity levels
+Gamma = 0.5                     # Depends on the type of test; the M-Force Choice methods Gamma = 1/M
+Lambda = 0.01                   # If not known from experience, this is usually set to 0.01 
+typef = "Logistic"              # Maximum number of time the same value of stimulus intensity can be presented consecutively
 
 
 def NewLinesLengths(size_base, size_add):
@@ -126,19 +130,11 @@ def HideLines():
 
 def GetNextLengths():
     
-    stimulus_values =  abs(np.array(lineA_length)-np.array(lineB_length))
-
     # Choose next stimulus intensity randomly for the first few trials
     if root.counter < MinTrials: 
-        # Choose next stimulus intensity at random
-        size_add = np.random.choice(StimLevels)
+        # Choose next stimulus intensity randomly
+        StimIndex = random.choice(range(len(StimLevels)))
         
-    # For the following trials, if the same intensity vaue has been repeated for
-    # longer than the maximum value of permited consequtive trials, present the 
-    # next value at random
-    elif ((stimulus_values[-MaxConsecutive:-1]-stimulus_values[-1]).sum() == 0) & (len(stimulus_values) > MaxConsecutive):
-        # Choose next stimulus intensity at random
-        size_add = np.random.choice(StimLevels)
         
     else:            
         # Present values by Psi method: 
@@ -154,10 +150,19 @@ def GetNextLengths():
             
             # Find stim level closest to alpha and set as current 
             diff = abs(StimLevels-results.x[0])
-            size_add = StimLevels[np.unravel_index(np.argmin(diff, axis=0), diff.shape)]
+            StimIndex = np.unravel_index(np.argmin(diff, axis=0), diff.shape)
+            StimIndex = np.random.choice(a=np.arange(StimIndex[0]-2,StimIndex[0]+3,1))
+            if StimIndex < 0:
+                StimIndex = 0
+            elif StimIndex > len(StimLevels)-1:
+                StimIndex = len(StimLevels)-1
+
         else:
             # Choose next stimulus intensity at random
-            size_add = np.random.choice(StimLevels)
+            StimIndex = random.choice(range(len(StimLevels)))
+
+    # Current Stimulus level by obtained index
+    size_add = StimLevels[StimIndex]
 
     return NewLinesLengths(size_base, size_add)
 
