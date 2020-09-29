@@ -32,3 +32,6 @@ test_gamma = 1/2
 typef= "Logistic"
 
 ```
+The performance of the algorithm is shown at the end of the simulation, as shown in the figure below. This shows the number of trials required for the estimation to converge towards the 'true' thresjold and slope.
+
+<img src="https://github.com/Marina-84/Threshold-measurements/blob/master/Method_performance_progress_example.PNG" width="40%">
